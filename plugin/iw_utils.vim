@@ -327,17 +327,17 @@ def startSearching(word, lines, lineNumber):
     result = isWordOldClass(word, line)
 
     if result != False:
+        printd('is old class def')
         return result
 
     result = getKnownDefinitions(word, lines, lineNumber)
-
-    if result != False:
-        return result
 
     #if hasEqualSignBeforeWord(lines[lineNumber], searchWord):
     #searchWordWithEqualSign(lines, searchWord, lineNumber)
     #else:
     #searchWordWithoutEqualSign(lines, searchWord, lineNumber)
+
+    return result
 
 def isWordOldClass(word, line):
     pattern = '_.*_'
@@ -346,15 +346,90 @@ def isWordOldClass(word, line):
 
     return False
 
+# search backwards from lineNumber, until the search word or word 'function' is find, if no definition and function found,
+# search from begin of file
 def getVariable(word, lines, lineNumber):
-    #TODO -> vymyslet tohle
+
+    printd('je to variable')
+
+    foundedLine = False 
+    result      = False
+    hasFunction = False
 
     i = 0
     for i in range(lineNumber, 0, -1):
         line = lines[i]
 
-    printd('je to variable', True)
+        patternWord = word + ' *='
+        if re.search(patternWord, line):
+            printd('slovo nalezeno, radka: ' + line)
+            foundedLine = line
+            break
+
+        patternFunction = ' *function ';  # handle constructor (skip it)
+
+        if re.search(patternFunction, line):
+            hasFunction = True
+            break;
+
+    if hasFunction == True:
+        printd('byla funkce, hledam od zacatku')
+        i = 0
+        for i in range(0, lineNumber):
+            line = lines[i]
+
+            patternWord = word + ' *='
+            if re.search(patternWord, line):
+                foundedLine = line
+                break
+
+    printd(foundedLine)
+
+    if foundedLine != False:
+        printd('nalezena variable na radce: ' + i.__str__())
+        printd(' radka: ' + line)
+        result = processLineForClassDefinition(word, lines, line, i)
+
+    return result
+
+def processLineForClassDefinition(word, lines, line, lineNumber):
+        
+    restOfLine = line.split('=', 1)[1].strip()
+
+    printd(restOfLine)
+
+    pattern = '(.*)::getInstance\(\)'
+
+    printd('pattern: ' + pattern)
+    res = re.search(pattern, restOfLine)
+    if res:
+        newWord = res.groups()[0]
+        printd('hledane nove slovo: ' + newWord)
+        return getUseNamespacedWord(newWord, lines, lineNumber)
+
+    quotes = '(\'|")'
+    pattern = 'IW_Core_BeanFactory::singleton\(' + quotes + '(.*)' + quotes + '\)';
+    printd('pattern: ' + pattern)
+    res = re.search(pattern, restOfLine)
+    if res:
+        newWord = res.groups()[0]
+        printd('hledane nove slovo: ' + newWord)
+        return getTagForWord(newWord)
+
+    pattern = 'new (.*)\('; #pridat bily znaky pred zavorku, a aby nebyl zravej
+
+    printd('pattern: ' + pattern)
+    res = re.search(pattern, restOfLine)
+    if res:
+        newWord = res.groups()[0]
+        printd('hledane nove slovo: ' + newWord)
+        return getUseNamespacedWord(newWord, lines, lineNumber)
+
+    #TODO implement all other types :)
+    # x) tohle nejde: (protoze otevre ba, misto hledanyho aaa: $aaa  = $ba->getAAAById($aaId);
+    # x) tohle nevim jestli ma cenu: function definition, like:   $neco = $this->getDef();
     return False
+    
 
 def getKnownDefinitions(word, lines, lineNumber):
     line = lines[lineNumber]
@@ -395,7 +470,8 @@ def getKnownDefinitions(word, lines, lineNumber):
         printd('new word')
         return getUseNamespacedWord(word, lines, lineNumber)
 
-    #IW_Core_Validate::getInstance()
+    # NOT this -> IW_Core_Validate::getInstance() -> this is catched before with  isWordOldClass(word, line)
+    # but this-> Service::getInstance()
     pattern = word + '::getInstance\('; #pridat bily znaky pred zavorku, a aby nebyl zravej
 
     printd(pattern);
