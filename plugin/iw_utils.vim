@@ -196,10 +196,12 @@ function! IwGetClassFile(sCls, lineNumber)
 
 python <<EOF
 import vim
+import re
 
 lines = vim.current.buffer
 
-def start(lines, sCls, lineNumber):
+# TODO NOT USED anymore
+def searchWordWithEqualSign(lines, sCls, lineNumber):
 
     sCls = sCls.strip()
     #print 'received data:'
@@ -302,11 +304,190 @@ def _getNamespacedClass(line):
 
     return line
 
+# return true, if word is followed by '=' like this:  xxx = something .. word 
+def hasEqualSignBeforeWord(line, word):
+    equalSingIndex = line.find('=');
+    
+    if equalSingIndex > -1:
+        equalSingIndexB = line.find('=', equalSingIndex + 1, equalSingIndex + 2); # get second '=', to check 'if statement' '=='
+
+        if equalSingIndexB < 0:
+            wordIndex = line.find(word);
+
+            if wordIndex > equalSingIndex:
+                return True
+
+
+    return False
+
+def startSearching(word, lines, lineNumber):
+
+    line = lines[lineNumber]
+
+    result = isWordOldClass(word, line)
+
+    if result != False:
+        return result
+
+    result = getKnownDefinitions(word, lines, lineNumber)
+
+    if result != False:
+        return result
+
+    #if hasEqualSignBeforeWord(lines[lineNumber], searchWord):
+    #searchWordWithEqualSign(lines, searchWord, lineNumber)
+    #else:
+    #searchWordWithoutEqualSign(lines, searchWord, lineNumber)
+
+def isWordOldClass(word, line):
+    pattern = '_.*_'
+    if re.search(pattern, word):
+        return getTagForWord(word)
+
+    return False
+
+def getVariable(word, lines, lineNumber):
+    #TODO -> vymyslet tohle
+
+    i = 0
+    for i in range(lineNumber, 0, -1):
+        line = lines[i]
+
+    printd('je to variable', True)
+    return False
+
+def getKnownDefinitions(word, lines, lineNumber):
+    line = lines[lineNumber]
+    printd('hledane slovo: ' + word + '; A radka: ')
+    printd(line)
+
+    quotes = '(\'|")'
+
+    pattern = '\$' + word;
+
+    printd(pattern);
+    if re.search(pattern, line):
+        printd('variable A')
+        return getVariable(word, lines, lineNumber)
+
+    pattern = '->' + word;
+
+    printd(pattern);
+    if re.search(pattern, line):
+        printd('variable B')
+        return getVariable(word, lines, lineNumber)
+
+    #$orgService = IW_Core_BeanFactory::singleton('IW_OrgStr_User_Service')
+    pattern = 'IW_Core_BeanFactory::singleton\(' + quotes + word + quotes + '\)';
+
+    printd(pattern);
+    if re.search(pattern, line):
+        printd('beanfactory singleton')
+        return getTagForWord(word)
+
+    #new Word()
+    # ->valid(new VoValidator(), $listViewVo, 'listViewVo')
+    #throw new IW_Core_Authorization_Exception(
+    pattern = 'new ' + word + '\('; #pridat bily znaky pred zavorku, a aby nebyl zravej
+
+    printd(pattern);
+    if re.search(pattern, line):
+        printd('new word')
+        return getUseNamespacedWord(word, lines, lineNumber)
+
+    #IW_Core_Validate::getInstance()
+    pattern = word + '::getInstance\('; #pridat bily znaky pred zavorku, a aby nebyl zravej
+
+    printd(pattern);
+    printd(re.search(pattern, line));
+    if re.search(pattern, line):
+        printd('word::getinstance')
+        return getUseNamespacedWord(word, lines, lineNumber)
+
+    #use \Brum\Vrum\Rum as Word;
+    pattern = 'use .*as ' + word; #pridat zacatek radku
+
+    printd(pattern);
+    if re.search(pattern, line):
+        printd('use as word')
+        return getUseNamespacedWordFromLine(word, lines, lineNumber)
+    
+    #use \Brum\Vrum\Word;
+    #use \Brum\Vrum\Word as Rum;
+    pattern = 'use .*' + word + '(;| )';  #pridat zacatek radku
+
+    printd(pattern);
+    if re.search(pattern, line):
+        printd('use word')
+        return getUseNamespacedWordFromLine(word, lines, lineNumber)
+
+    printd('koncim, nic jsem nenasel')
+    return False
+
+def getTagForWord(word):
+    return 'tag /' + word
+
+def getUseNamespacedWordFromLine(word, lines, lineNumber):
+    line = lines[lineNumber]
+
+    return _getNamespacedClass(line)
+
+def getUseNamespacedWord(word, lines, lineNumber):
+
+    result = False
+    i = 0
+
+    for i in range(0, lineNumber):
+        printd(i)
+        printd(lines[i])
+        printd(word)
+        printd(lines[i].find(word))
+
+        line = lines[i]
+
+        if line.find("{") > -1: # namespace definitions ends with class {
+            break
+        else:
+            endWord = word + ';'
+
+            if lines[i].find(endWord) > -1:
+                printd('uvnitr')
+
+                if line.find(" as ") > -1:
+                    #This if is for lines like:
+                    # use IW\Core\ListView\Service;
+                    # use IW\Core\ListView\Category\Service as CategoryService;
+                    # -- and we search Service   So the code is prevent for opening wrong Category/Service
+                    part = line[line.find(' as ')+4:-1]
+                    if part == word:
+                        result = _getNamespacedClass(line)
+                    else:
+                        continue
+                else:
+                    result = _getNamespacedClass(line)
+
+                break
+
+    printd('nasel jsem: ' + result)
+    return result
+ 
+#def printd(string, debug=True):
+def printd(string, debug=False):
+    if debug == True:
+        print(string)
+    
+
 searchWord = vim.eval("a:sCls") 
 lineNumber = int(vim.eval("a:lineNumber"))
 
-result = start(lines, searchWord, lineNumber)
-vim.command(result)
+lineNumber = lineNumber - 1 #correction to right line, where is cursor
+searchWord = searchWord.strip()
+result = startSearching(searchWord, lines, lineNumber)
+
+if result != False:
+    vim.command(result)
+else:
+    print result
 
 
 EOF
