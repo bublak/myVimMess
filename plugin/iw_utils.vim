@@ -480,6 +480,14 @@ def getKnownDefinitions(word, lines, lineNumber):
         printd('word::getinstance')
         return getUseNamespacedWord(word, lines, lineNumber)
 
+    pattern = word + '::class';
+
+    printd(pattern);
+    printd(re.search(pattern, line));
+    if re.search(pattern, line):
+        printd('word::class')
+        return getUseNamespacedWord(word, lines, lineNumber)
+
     #use \Brum\Vrum\Rum as Word;
     pattern = 'use .*as ' + word; #pridat zacatek radku
 
