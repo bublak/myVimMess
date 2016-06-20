@@ -407,8 +407,16 @@ def processLineForClassDefinition(word, lines, line, lineNumber):
         printd('hledane nove slovo: ' + newWord)
         return getUseNamespacedWord(newWord, lines, lineNumber)
 
-    quotes = '(\'|")'
+    quotes = '[\'|"]'
     pattern = 'IW_Core_BeanFactory::singleton\(' + quotes + '(.*)' + quotes + '\)';
+    printd('pattern: ' + pattern)
+    res = re.search(pattern, restOfLine)
+    if res:
+        newWord = res.groups()[0]
+        printd('hledane nove slovo: ' + newWord)
+        return getTagForWord(newWord)
+
+    pattern = 'IW_Core_BeanFactory::singleton\(' + '(.*)::class' + '\)';
     printd('pattern: ' + pattern)
     res = re.search(pattern, restOfLine)
     if res:
@@ -436,7 +444,7 @@ def getKnownDefinitions(word, lines, lineNumber):
     printd('hledane slovo: ' + word + '; A radka: ')
     printd(line)
 
-    quotes = '(\'|")'
+    quotes = '[\'|"]'
 
     pattern = '\$' + word;
 
@@ -569,6 +577,7 @@ searchWord = searchWord.strip()
 result = startSearching(searchWord, lines, lineNumber)
 
 if result != False:
+    #print result
     vim.command(result)
 else:
     print result
