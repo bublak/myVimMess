@@ -509,7 +509,6 @@ nnoremap <leader>s :%s#\<<C-r>=expand("<cword>")<CR>\>#
 " Sudo to write
 cnoremap w!! w !sudo tee % >/dev/null
 
-
 " Keep search matches in the middle of the window and pulse the line when moving
 " to them.
 "nnoremap n n:call PulseCursorLine()<cr>
@@ -539,8 +538,6 @@ else
     endif
 endif
 
-"nmap <leader>c :CommandT <cr>
-
 "manipulovani s oknami, zavre buffer, ale zachova split windows
 "map <c-w> :bw %<cr>  "pouziva se na split window
 nmap <leader>f <ESC>:call CleanClose(1)<cr>
@@ -549,18 +546,12 @@ nmap <leader> q <ESC> :q<cr>
 nmap <F6> o iwlot ; <ESC>
 nmap <F7> o mtimestop ; <ESC>
 
-"skoci na tridu
 map <F8> <ESC>yiw<ESC>OIW_Core_Log::getLogger(__CLASS__)->error(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
 map <leader><F8> <ESC>yiw<ESC>Ovar_dump(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
 
 "run unit test, if you are in method in test class - since vagrant not working - but is possible to run command to vagrant
 "map <F12> <ESC>j[[2W :Shell cd ~/tr/trunk/;phpunit --filter=<C-R>=expand("<cword>")<CR> % <CR>
 "
-"next command gif  - works for namespaces in portal - go to variable class
-"map gif **ggn^:s/\\/\//g<cr><esc>^dwdf/yf/^i./portal/<esc>p<esc>b~waimpl/IW/<esc>$i.php<esc>^gf<c-n>u<c-n>
-map gif mZ**ggn:call IwMoveNamespaces()<CR>
-map gib 'Z
-
 map <F11> <ESC>:call IwMoveFclientFile('<C-R>=expand("<cword>")<CR>')<CR>
 map <F11>a <ESC>:call IwMoveToRestAdapterFile('<C-R>=expand("<cword>")<CR>')<CR>
 
@@ -569,7 +560,6 @@ map <leader><F12> <ESC>:so /home/pavel/.vim/vimrc-pavel<CR><ESC>:so /home/pavel/
 
 "vyhleda bean instanci promeny, na ktery je prave ukazatel, a zaroven ji
 "pripravy pro vyhledani v ctags
-" TODO, - zprovoznit namespace tridy
 map <leader><F9> <ESC>"9yiwmz?<C-r><C-w>.*=.*IW_Core_BeanFactory::singleton(.*\_s*.*'IW_.*'\_s*.*)<CR>2/IW_<CR>"8yiw'zO<ESC>I$<ESC>"9pA = new <ESC>"8pA; <ESC>jo$<ESC>"9pA-><C-x><C-o>
 map <leader><F10> <ESC>"9yiwmz?<C-r><C-w>.*=.*IW_Core_BeanFactory::singleton(.*\_s*.*'IW_.*'\_s*.*)<CR>2/IW_<CR><F6>
 
