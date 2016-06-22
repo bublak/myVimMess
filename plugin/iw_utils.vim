@@ -140,35 +140,6 @@ if adapterFile:
 EOF
 endfunction
 
-"           =================function==================== 
-"move in IW namespaces -> you should call, after you find the namespace "use" line
-" This function exptects the created 'tag' file, and loaded, because it use it to find class.
-function! IwMoveNamespaces()
-python <<EOF
-import vim
-
-line = vim.current.line
-
-#cut off: ' as KVA;' part
-#note: if there is not ' as ' -> the -1 value is returned, which caused cutting the ; at the end of line!!!
-line = line[:line.find(' as ')] 
-
-#cut off "use "
-line = line[4:]
-
-if line.find("_") > -1:   #if no namespace use, go directly to class
-    vim.command('tag /'+line);
-elif line.find("\\") > -1:
-    line = line.replace('\\', '/') #change path separators
-    module = line[3:len(line)]
-    module = module[:module.find('/')]
-    module = module.lower()
-    line = 'e ./portal/' + module + '/impl/' + line + '.php'
-    vim.command(line)
-
-EOF
-endfunction
-
 "           =================function====================
 "move to unit test
 function! IwGetUnitTestFile()
@@ -287,20 +258,28 @@ def searchWordWithEqualSign(lines, sCls, lineNumber):
     #print result
     return result
 
+# NOTE: last char of line is deleted by processing line, so there should be for example ';'
 def _getNamespacedClass(line):
     #note: if there is not ' as ' -> the -1 value is returned, which caused cutting the ; at the end of line!!!
     line = line[:line.find(' as ')] 
 
-    #cut off "use "
-    line = line[4:]
+    if line.find('use ') == 0:
+        #cut off "use "
+        line = line[4:]
 
-    line = line.replace('\\', '/') #change path separators
+    if line.find("_") > -1:
+        line = 'tag /' + line
+    else:
+        line = line.replace('\\', '/') #change path separators
 
-    module = line[3:len(line)]
-    module = module[:module.find('/')]
-    module = module.lower()
+        module = line[3:len(line)]
+        module = module[:module.find('/')]
+        module = module.lower()
 
-    line = 'e ./portal/' + module + '/impl/' + line + '.php'
+        line = 'e ./portal/' + module + '/impl/' + line + '.php'
+
+    printd('namespace line to open:')
+    printd(line)
 
     return line
 
@@ -440,6 +419,8 @@ def processLineForClassDefinition(word, lines, line, lineNumber):
     
 
 def getKnownDefinitions(word, lines, lineNumber):
+    printd('vstupuju getKnownDefinitions')
+
     line = lines[lineNumber]
     printd('hledane slovo: ' + word + '; A radka: ')
     printd(line)
@@ -450,14 +431,14 @@ def getKnownDefinitions(word, lines, lineNumber):
 
     printd(pattern);
     if re.search(pattern, line):
-        printd('variable A')
+        printd('found variable A')
         return getVariable(word, lines, lineNumber)
 
     pattern = '->' + word;
 
     printd(pattern);
     if re.search(pattern, line):
-        printd('variable B')
+        printd('found variable B')
         return getVariable(word, lines, lineNumber)
 
     #$orgService = IW_Core_BeanFactory::singleton('IW_OrgStr_User_Service')
@@ -465,7 +446,7 @@ def getKnownDefinitions(word, lines, lineNumber):
 
     printd(pattern);
     if re.search(pattern, line):
-        printd('beanfactory singleton')
+        printd('found beanfactory singleton')
         return getTagForWord(word)
 
     #new Word()
@@ -475,7 +456,7 @@ def getKnownDefinitions(word, lines, lineNumber):
 
     printd(pattern);
     if re.search(pattern, line):
-        printd('new word')
+        printd('found new word')
         return getUseNamespacedWord(word, lines, lineNumber)
 
     # NOT this -> IW_Core_Validate::getInstance() -> this is catched before with  isWordOldClass(word, line)
@@ -485,7 +466,7 @@ def getKnownDefinitions(word, lines, lineNumber):
     printd(pattern);
     printd(re.search(pattern, line));
     if re.search(pattern, line):
-        printd('word::getinstance')
+        printd('found word::getinstance')
         return getUseNamespacedWord(word, lines, lineNumber)
 
     pattern = word + '::class';
@@ -493,7 +474,15 @@ def getKnownDefinitions(word, lines, lineNumber):
     printd(pattern);
     printd(re.search(pattern, line));
     if re.search(pattern, line):
-        printd('word::class')
+        printd('found word::class')
+        return getUseNamespacedWord(word, lines, lineNumber)
+
+    pattern = word + '::';
+
+    printd(pattern);
+    printd(re.search(pattern, line));
+    if re.search(pattern, line):
+        printd('found word::')
         return getUseNamespacedWord(word, lines, lineNumber)
 
     #use \Brum\Vrum\Rum as Word;
@@ -501,7 +490,7 @@ def getKnownDefinitions(word, lines, lineNumber):
 
     printd(pattern);
     if re.search(pattern, line):
-        printd('use as word')
+        printd('found use as word')
         return getUseNamespacedWordFromLine(word, lines, lineNumber)
     
     #use \Brum\Vrum\Word;
@@ -510,7 +499,7 @@ def getKnownDefinitions(word, lines, lineNumber):
 
     printd(pattern);
     if re.search(pattern, line):
-        printd('use word')
+        printd('found use word')
         return getUseNamespacedWordFromLine(word, lines, lineNumber)
 
     printd('koncim, nic jsem nenasel')
@@ -525,26 +514,46 @@ def getUseNamespacedWordFromLine(word, lines, lineNumber):
     return _getNamespacedClass(line)
 
 def getUseNamespacedWord(word, lines, lineNumber):
+    printd('hledam v namespace')
 
     result = False
     i = 0
+    namespaceDefLine = False
+    namespaceDefPattern = 'namespace '
 
     for i in range(0, lineNumber):
+        printd('pozice i: ')
         printd(i)
+        printd('radek: ')
         printd(lines[i])
+        printd('slovo: ')
         printd(word)
+        printd('bylo nalezeno?: ')
         printd(lines[i].find(word))
 
         line = lines[i]
 
+        if namespaceDefLine == False:
+            namespaceDefPosition = lines[i].find(namespaceDefPattern)
+
+            if namespaceDefPosition > -1:
+                namespaceDefLine = lines[i][namespaceDefPosition+len(namespaceDefPattern):]
+                namespaceDefLine = namespaceDefLine.replace(';', '\\'+word)
+                namespaceDefLine += ';'
+
+                printd('namespace current directory:')
+                printd(namespaceDefLine)
+
         if line.find("{") > -1: # namespace definitions ends with class {
+            printd(''),
+            printd('konec namespace definitions, try current directory:');
+            result = _getNamespacedClass(namespaceDefLine)
+            #open in current directory
             break
         else:
             endWord = word + ';'
 
             if lines[i].find(endWord) > -1:
-                printd('uvnitr')
-
                 if line.find(" as ") > -1:
                     #This if is for lines like:
                     # use IW\Core\ListView\Service;
@@ -574,6 +583,11 @@ lineNumber = int(vim.eval("a:lineNumber"))
 
 lineNumber = lineNumber - 1 #correction to right line, where is cursor
 searchWord = searchWord.strip()
+
+
+# //auth begin - authorized in IW_User_Search_PatternService
+# var_export(sprintf("\033[41m.....\033[0m%s: ", "patternId").var_export($patternId, 1));
+
 result = startSearching(searchWord, lines, lineNumber)
 
 if result != False:
