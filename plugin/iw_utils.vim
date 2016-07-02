@@ -171,93 +171,6 @@ import re
 
 lines = vim.current.buffer
 
-# TODO NOT USED anymore
-def searchWordWithEqualSign(lines, sCls, lineNumber):
-
-    sCls = sCls.strip()
-    #print 'received data:'
-    #print sCls
-    #print lineNumber
-
-    result = sCls
-
-
-    #linesNumber = len(lines)
-    linesNumber = lineNumber
-
-    i = 0
-    for i in range(linesNumber, 0, -1):
-        #print i
-        #print lines[i]
-        #print sCls
-        #print lines[i].find(sCls)
-
-        if lines[i].find(sCls) > -1:
-            #print 'uvnitr'
-            line = lines[i]
-
-            if line.find("\\") > -1:
-                #print 'a:';
-                #namespace
-                
-                if line.find(" as ") > -1:
-                    #This if is for lines like:
-                    # use IW\Core\ListView\Service;
-                    # use IW\Core\ListView\Category\Service as CategoryService;
-                    # -- and we search Service   So the code is prevent for opening wrong Category/Service
-                    part = line[line.find(' as ')+4:-1]
-                    if part == sCls:
-                        result = _getNamespacedClass(line)
-                    else:
-                        continue
-                else:
-                    result = _getNamespacedClass(line)
-
-                break
-            elif line.find("IW_Core_BeanFactory::singleton") > -1:
-                #print 'b:';
-                line = line[(line.find('singleton')+11):]
-                line = line[:(line.find('\')')):]
-
-                result = 'tag /' + line
-                break
-            elif line.find("getInstance") > -1:
-                #print 'c:';
-                #'$kuku = AHOJabcd::getInstance();';
-                line = line[line.find('= ')+2:]
-                line = line[:line.find('::getI')]
-
-                #print line
-                result = start(lines, line, i-1)
-                break
-            elif line.find("new ") > -1:
-                #print 'd:';
-                #'$fvur = new Kabcd();';
-                line = line[line.find('new ')+4:]
-                line = line[:line.find('()')]
-                
-                result = start(lines, line, i-1)
-                break
-            elif line.find("(new ") > -1:
-                #print 'e:';
-                line = line[line.find('(new ')+4:]
-                line = line[:line.find('())')]
-
-                result = start(lines, line, i-1)
-                break
-            elif line.find("_") > -1:
-                #print 'f:';
-                result = 'tag /' + sCls
-                break
-            else:
-                #print 'nothing found'
-                #TODO - if nothing found, try open namespace xxxxx;
-                a = sCls
-
-    #print 'koncim s:'
-    #print result
-    return result
-
 # NOTE: last char of line is deleted by processing line, so there should be for example ';'
 def _getNamespacedClass(line):
     #note: if there is not ' as ' -> the -1 value is returned, which caused cutting the ; at the end of line!!!
@@ -329,7 +242,7 @@ def isWordOldClass(word, line):
 # search from begin of file
 def getVariable(word, lines, lineNumber):
 
-    printd('je to variable')
+    printd('vstupuju do getVariable')
 
     foundedLine = False 
     result      = False
@@ -403,7 +316,7 @@ def processLineForClassDefinition(word, lines, line, lineNumber):
         printd('hledane nove slovo: ' + newWord)
         return getTagForWord(newWord)
 
-    pattern = 'new (.*)\('; #pridat bily znaky pred zavorku, a aby nebyl zravej
+    pattern = 'new (.*?)\('; # the ? cause not greedy behaviour
 
     printd('pattern: ' + pattern)
     res = re.search(pattern, restOfLine)
@@ -457,7 +370,7 @@ def getKnownDefinitions(word, lines, lineNumber):
     printd(pattern);
     if re.search(pattern, line):
         printd('found new word')
-        return getUseNamespacedWord(word, lines, lineNumber)
+        return getUseNamespacedWord(word, lines, lineNumber, line)
 
     # NOT this -> IW_Core_Validate::getInstance() -> this is catched before with  isWordOldClass(word, line)
     # but this-> Service::getInstance()
@@ -467,7 +380,7 @@ def getKnownDefinitions(word, lines, lineNumber):
     printd(re.search(pattern, line));
     if re.search(pattern, line):
         printd('found word::getinstance')
-        return getUseNamespacedWord(word, lines, lineNumber)
+        return getUseNamespacedWord(word, lines, lineNumber, line)
 
     pattern = word + '::class';
 
@@ -475,7 +388,7 @@ def getKnownDefinitions(word, lines, lineNumber):
     printd(re.search(pattern, line));
     if re.search(pattern, line):
         printd('found word::class')
-        return getUseNamespacedWord(word, lines, lineNumber)
+        return getUseNamespacedWord(word, lines, lineNumber, line)
 
     pattern = word + '::';
 
@@ -483,7 +396,7 @@ def getKnownDefinitions(word, lines, lineNumber):
     printd(re.search(pattern, line));
     if re.search(pattern, line):
         printd('found word::')
-        return getUseNamespacedWord(word, lines, lineNumber)
+        return getUseNamespacedWord(word, lines, lineNumber, line)
 
     #use \Brum\Vrum\Rum as Word;
     pattern = 'use .*as ' + word; #pridat zacatek radku
@@ -513,9 +426,21 @@ def getUseNamespacedWordFromLine(word, lines, lineNumber):
 
     return _getNamespacedClass(line)
 
-def getUseNamespacedWord(word, lines, lineNumber):
+def getUseNamespacedWord(word, lines, lineNumber, line):
     printd('hledam v namespace')
 
+    # try first find the extended namespace use:  ABCD\EFG\word
+    hasExtendedNamespace = False
+    pattern = '([\w\\\\]{1,}' +  word + ')';
+
+    printd('hledam pattern: ' + pattern);
+    printd(re.search(pattern, line));
+    res = re.search(pattern, line)
+    if res:
+        hasExtendedNamespace = True
+        word = res.groups()[0]
+        printd('found extended namespace ' + word)
+        
     result = False
     i = 0
     namespaceDefLine = False
@@ -544,13 +469,17 @@ def getUseNamespacedWord(word, lines, lineNumber):
                 printd('namespace current directory:')
                 printd(namespaceDefLine)
 
+                if hasExtendedNamespace == True:
+                    result = _getNamespacedClass(namespaceDefLine);
+                    break;
+
         if line.find("{") > -1: # namespace definitions ends with class {
             printd(''),
             printd('konec namespace definitions, try current directory:');
             result = _getNamespacedClass(namespaceDefLine)
             #open in current directory
             break
-        else:
+        elif hasExtendedNamespace == False:
             endWord = word + ';'
 
             if lines[i].find(endWord) > -1:
