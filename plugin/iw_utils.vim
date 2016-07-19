@@ -415,8 +415,11 @@ def getKnownDefinitions(word, lines, lineNumber):
         printd('found use word')
         return getUseNamespacedWordFromLine(word, lines, lineNumber)
 
-    printd('koncim, nic jsem nenasel')
-    return False
+
+    # try fallback (for expample for:  class A extends B) -> searching B
+    return getUseNamespacedWord(word, lines, lineNumber, line)
+    #printd('koncim, nic jsem nenasel')
+    #return False
 
 def getTagForWord(word):
     return 'tag /' + word
@@ -446,7 +449,20 @@ def getUseNamespacedWord(word, lines, lineNumber, line):
     namespaceDefLine = False
     namespaceDefPattern = 'namespace '
 
-    for i in range(0, lineNumber):
+    cycleLineNumber = lineNumber;
+
+    # i want another 3 lines, if are posible ( to support case: 
+    # search for word Job, so the line number is less then the: namespace definitions ends with class {
+    # class JobBB extends Job
+    # {
+
+    count = 0
+
+    while len(lines) > cycleLineNumber and count < 3:
+        cycleLineNumber += 1
+        count += 1
+
+    for i in range(0, cycleLineNumber):
         printd('pozice i: ')
         printd(i)
         printd('radek: ')
