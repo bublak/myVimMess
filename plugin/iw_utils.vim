@@ -297,7 +297,7 @@ def processLineForClassDefinition(word, lines, line, lineNumber):
     if res:
         newWord = res.groups()[0]
         printd('hledane nove slovo: ' + newWord)
-        return getUseNamespacedWord(newWord, lines, lineNumber)
+        return getUseNamespacedWord(newWord, lines, lineNumber, line)
 
     quotes = '[\'|"]'
     pattern = 'IW_Core_BeanFactory::singleton\(' + quotes + '(.*)' + quotes + '\)';
@@ -323,7 +323,7 @@ def processLineForClassDefinition(word, lines, line, lineNumber):
     if res:
         newWord = res.groups()[0]
         printd('hledane nove slovo: ' + newWord)
-        return getUseNamespacedWord(newWord, lines, lineNumber)
+        return getUseNamespacedWord(newWord, lines, lineNumber, line)
 
     #TODO implement all other types :)
     # x) tohle nejde: (protoze otevre ba, misto hledanyho aaa: $aaa  = $ba->getAAAById($aaId);
@@ -512,10 +512,6 @@ lineNumber = int(vim.eval("a:lineNumber"))
 
 lineNumber = lineNumber - 1 #correction to right line, where is cursor
 searchWord = searchWord.strip()
-
-
-# //auth begin - authorized in IW_User_Search_PatternService
-# var_export(sprintf("\033[41m.....\033[0m%s: ", "patternId").var_export($patternId, 1));
 
 result = startSearching(searchWord, lines, lineNumber)
 
