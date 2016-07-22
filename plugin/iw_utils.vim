@@ -324,6 +324,15 @@ def processLineForClassDefinition(word, lines, line, lineNumber):
         newWord = res.groups()[0]
         printd('hledane nove slovo: ' + newWord)
         return getUseNamespacedWord(newWord, lines, lineNumber, line)
+        
+    pattern = '(.*?)::create'; # the ? cause not greedy behaviour
+
+    printd('pattern: ' + pattern)
+    res = re.search(pattern, restOfLine)
+    if res:
+        newWord = res.groups()[0]
+        printd('hledane nove slovo: ' + newWord)
+        return getUseNamespacedWord(newWord, lines, lineNumber, line)
 
     #TODO implement all other types :)
     # x) tohle nejde: (protoze otevre ba, misto hledanyho aaa: $aaa  = $ba->getAAAById($aaId);
@@ -417,6 +426,7 @@ def getKnownDefinitions(word, lines, lineNumber):
 
 
     # try fallback (for expample for:  class A extends B) -> searching B
+    printd('try fallback namespace')
     return getUseNamespacedWord(word, lines, lineNumber, line)
     #printd('koncim, nic jsem nenasel')
     #return False
@@ -463,14 +473,9 @@ def getUseNamespacedWord(word, lines, lineNumber, line):
         count += 1
 
     for i in range(0, cycleLineNumber):
-        printd('pozice i: ')
-        printd(i)
-        printd('radek: ')
-        printd(lines[i])
-        printd('slovo: ')
-        printd(word)
-        printd('bylo nalezeno?: ')
-        printd(lines[i].find(word))
+        printd('radek: ' + lines[i])
+        printd('slovo: ' + word)
+        printd('bylo nalezeno?: ' + lines[i].find(word).__str__())
 
         line = lines[i]
 
@@ -486,6 +491,7 @@ def getUseNamespacedWord(word, lines, lineNumber, line):
                 printd(namespaceDefLine)
 
                 if hasExtendedNamespace == True:
+                    printd('lezu do namespaced class pro extended namespace')
                     result = _getNamespacedClass(namespaceDefLine);
                     break;
 
@@ -496,9 +502,8 @@ def getUseNamespacedWord(word, lines, lineNumber, line):
             #open in current directory
             break
         elif hasExtendedNamespace == False:
-            endWord = word + ';'
 
-            if lines[i].find(endWord) > -1:
+            if re.search(r"\b"+word+r"\b"+';', lines[i]) > -1:
                 if line.find(" as ") > -1:
                     #This if is for lines like:
                     # use IW\Core\ListView\Service;
@@ -517,8 +522,8 @@ def getUseNamespacedWord(word, lines, lineNumber, line):
     printd('nasel jsem: ' + result)
     return result
  
-#def printd(string, debug=True):
-def printd(string, debug=False):
+def printd(string, debug=True):
+#def printd(string, debug=False):
     if debug == True:
         print(string)
     
