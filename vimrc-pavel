@@ -35,17 +35,8 @@ set history=3000
 set formatoptions=l
 set lbr
 
-" move by screen lines, not by real lines - great for creative writing
-"nnoremap j gj
-"nnoremap k gk
- 
-" also in visual mode
-"vnoremap j gj
-"vnoremap k gk
-"
-
-"set guifont=Monospace\ 9
-set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 9
+"set guifont=Monospace\ 8
+set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 11
 
 nnoremap <C-e> 3<C-e>
 nnoremap <C-y> 3<C-y>
@@ -75,7 +66,7 @@ autocmd FileType c,cpp,java,php,phtml autocmd BufWritePre <buffer> :%s/\s\+$//e
 set colorcolumn=121 "ukaze caru za poctem znaku - na dlouhy radky
 
 set showcmd		" Show (partial) command in status line.
-set showmatch		" Show matching brackets.
+"set showmatch		" Show matching brackets.
 set ignorecase		" Do case insensitive matching
 set smartcase		" Do smart case matching
 "set gdefault      "nemusi se psat g  u nahrazovani atd..
@@ -97,10 +88,6 @@ set mouse=a
 "map <ScrollWheelUp> <esc>kkk
 "map <ScrollWheelDown> <ESC>jjj
 
-
-
-" use jj to quickly escape to normal mode while typing 
-"inoremap jj <ESC>l
 inoremap jf <ESC>l
 "inoremap <F12> <c-o>:w<cr>
 
@@ -153,13 +140,18 @@ let g:checksyntax_auto = 1
 "noremap   <Left>   <NOP>
 "noremap   <Right>  <NOP>
 
-noremap   * *#
-noremap   # *#
-noremap   ** *
-noremap   ## #
+"
+"assuming you have hlsearch enabled. It highlights text without jumping, and you don't have to change existing settings. This changes the value that's currently stored in the search register
+" :let @/='hilight_this'
+"  or http://www.vim.org/scripts/script.php?script_id=2666
 
+nnoremap * <ESC>:let @/='<C-R>=expand("<cword>")<CR>'<CR>
 map <2-LeftMouse> *
-imap <2-LeftMouse> <c-o>**
+"nnoremap * *N
+"noremap  # #N
+
+"map <2-LeftMouse> *
+"imap <2-LeftMouse> <c-o>*
 
 map <Leader>e :Explore<cr>
 "map <Leader>s :Sexplore<cr>
@@ -193,10 +185,11 @@ let g:miniBufExplModSelTarget = 1
 "let g:miniBufExplVSplit = 25
 "let g:miniBufExplSplitBelow=1
 
-"sexy_scroll
+"sexy_scroll " TODO update or delete
 let g:SexyScroller_CursorTime = 0
 let g:SexyScroller_EasingStyle = 4
-"
+
+
 let php_sql_query=1 "to highlight SQL syntax in string
 let php_htmlInStrings=1 "to highlight HTML in string
 "let php_noShorttags=1 "to disable short tags
@@ -225,10 +218,6 @@ imap <c-s> <esc><c-s>
 "center mark positon
 ":map <expr> MM printf('`%c zz',getchar()) 
 
-
-" Select all.
-"map <c-a> ggVG
-
 " Undo in insert mode.
 imap <c-z> <c-o>u
 
@@ -244,19 +233,8 @@ vmap <C-k> <Plug>MoveBlockUp
 nmap <C-j> <Plug>MoveLineDown
 nmap <C-k> <Plug>MoveLineUp
 
-
 " Avoids updating the screen before commands are completed
 set lazyredraw
-
-" Remap navigation commands to center view on cursor using zz
-"nnoremap <C-U> 11kzz
-"nnoremap <C-D> 11jzz
-"nnoremap j jzz
-"nnoremap k kzz
-"nnoremap # #zz
-"nnoremap * *zz
-"nnoremap n nzz
-"nnoremap N Nzz
 
 "tab settings:
 set tabstop=4
@@ -272,7 +250,7 @@ set autoindent "Automatically try to indent
 set autoread 
 
 " Set 7 lines to the cursor - when moving vertically using j/k
-set so=7
+set so=5
 
 set wildmenu
 set wildmode=list,longest
@@ -294,9 +272,6 @@ vnoremap <silent> <leader>d "_d
 "map <C-k> <C-W>k
 map <C-h> <C-W>h
 map <C-l> <C-W>l
-
- "map <C-p> gT
- "map <C-n> gt
 
  map <C-n> <ESC>:b#<CR>
 
@@ -333,29 +308,6 @@ set bg=light
 "colorscheme peaksea
 "colorscheme oceandeep
 
-"===one combination:
-" colorscheme fisa
-" colorscheme xoria256
-" colorscheme guardian
- 
-" colorscheme ron
-" colorscheme peaksea
-" colorscheme oceandeep
- "===end one combination
- 
-
-"===one combination:
-"colorscheme xoria256
-"colorscheme fisa
- "===end one combination
-
-"===one combination:
-"colorscheme xoria256
-"colorscheme fisa
-"colorscheme desert
-"colorscheme autumn
- "===end one combination
-
 "colorscheme tir_black
 "colorscheme neverness
 
@@ -365,7 +317,7 @@ if has('gui_running')
   "hi Todo guifg=#40ffff guibg=#606060
 
   "resize window after start
-  "set lines=70 columns=130 linespace=0
+  set lines=70 columns=130 linespace=0
 
   set linespace=3
 
@@ -384,7 +336,7 @@ colorscheme jellybeans
 
 if &diff
     syntax off
-    "colorscheme 3dglasses
+    colorscheme desert
 "else
 endif
 
@@ -419,13 +371,6 @@ if exists(":Tabularize")
   vmap <Leader>a: :Tabularize /:\zs<CR>
 endif
 
- " Useful mappings for managing tabs
-"map <leader>tn :tabnew<cr>
-"map <leader>to :tabonly<cr>
-"map <leader>tcc :tabclose<cr>
-"map <leader>tm :tabmoveo
-
-
 " Quote current selection
 " TODO: This only works for selections that are created "forwardly"
 vnoremap <leader>" <esc>a"<esc>gvo<esc>i"<esc>gvo<esc>ll
@@ -445,7 +390,6 @@ vnoremap <leader>yy :call RangeCommentLine()<CR>
 noremap  <leader>x  :call UnCommentLine()<CR>
 " key-mappings for range un-comment lines in visual <Shift-V> mode
 vnoremap <leader>x  :call RangeUnCommentLine()<CR>
-
 
 
 " Yank/paste to the OS clipboard with ,y and ,p
@@ -474,13 +418,6 @@ vmap <C-x> "+c
 vmap <C-v> c<ESC>"+p
 imap <C-v> <ESC>"+pa
 
-" Select all text
-"nmap <C-a> ggVG
-
-"inoremap <C-P> <ESC>:call PhpDocSingle()<CR>i 
-"nnoremap <C-P> :call PhpDocSingle()<CR> 
-"vnoremap <C-P> :call PhpDocRange()<CR>
-
 " Fast saving
 nmap <leader>w :w<cr>
 map! ,w <ESC>:w<cr>l
@@ -508,6 +445,7 @@ nnoremap <leader>s :%s#\<<C-r>=expand("<cword>")<CR>\>#
 
 " Sudo to write
 cnoremap w!! w !sudo tee % >/dev/null
+
 
 " Keep search matches in the middle of the window and pulse the line when moving
 " to them.
@@ -538,6 +476,8 @@ else
     endif
 endif
 
+"nmap <leader>c :CommandT <cr>
+
 "manipulovani s oknami, zavre buffer, ale zachova split windows
 "map <c-w> :bw %<cr>  "pouziva se na split window
 nmap <leader>f <ESC>:call CleanClose(1)<cr>
@@ -546,12 +486,16 @@ nmap <leader> q <ESC> :q<cr>
 nmap <F6> o iwlot ; <ESC>
 nmap <F7> o mtimestop ; <ESC>
 
+"skoci na tridu
 map <F8> <ESC>yiw<ESC>OIW_Core_Log::getLogger(__CLASS__)->error(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
 map <leader><F8> <ESC>yiw<ESC>Ovar_dump(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
 
 "run unit test, if you are in method in test class - since vagrant not working - but is possible to run command to vagrant
 "map <F12> <ESC>j[[2W :Shell cd ~/tr/trunk/;phpunit --filter=<C-R>=expand("<cword>")<CR> % <CR>
 "
+"next command gif  - works for namespaces in portal - go to variable class
+"map gif **ggn^:s/\\/\//g<cr><esc>^dwdf/yf/^i./portal/<esc>p<esc>b~waimpl/IW/<esc>$i.php<esc>^gf<c-n>u<c-n>
+
 map <F11> <ESC>:call IwMoveFclientFile('<C-R>=expand("<cword>")<CR>')<CR>
 map <F11>a <ESC>:call IwMoveToRestAdapterFile('<C-R>=expand("<cword>")<CR>')<CR>
 
@@ -560,6 +504,7 @@ map <leader><F12> <ESC>:so /home/pavel/.vim/vimrc-pavel<CR><ESC>:so /home/pavel/
 
 "vyhleda bean instanci promeny, na ktery je prave ukazatel, a zaroven ji
 "pripravy pro vyhledani v ctags
+" TODO, - zprovoznit namespace tridy
 map <leader><F9> <ESC>"9yiwmz?<C-r><C-w>.*=.*IW_Core_BeanFactory::singleton(.*\_s*.*'IW_.*'\_s*.*)<CR>2/IW_<CR>"8yiw'zO<ESC>I$<ESC>"9pA = new <ESC>"8pA; <ESC>jo$<ESC>"9pA-><C-x><C-o>
 map <leader><F10> <ESC>"9yiwmz?<C-r><C-w>.*=.*IW_Core_BeanFactory::singleton(.*\_s*.*'IW_.*'\_s*.*)<CR>2/IW_<CR><F6>
 
