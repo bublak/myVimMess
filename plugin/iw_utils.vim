@@ -24,7 +24,7 @@ if name[-3:] != '.js':
     vim.command('return -1')
     #TODO = jak zde vyskocit, aby program nepokracoval
 
-searchWord = vim.eval("a:searchFclientWord") 
+searchWord = vim.eval("a:searchFclientWord")
 
 lines       = vim.current.buffer
 linesNumber = len(lines)
@@ -52,13 +52,13 @@ for i in range(startLine,linesNumber):
         break
 
 #get only files inside the brackets []
-requireFiles = requireFiles[requireFiles.find('[')+1:requireFiles.find(']')] 
+requireFiles = requireFiles[requireFiles.find('[')+1:requireFiles.find(']')]
 #cut the apostrophes and whitespaces
 requireFiles = requireFiles.replace(' ', '') #change whitespaces
 requireFiles = requireFiles.replace('\'', '') #apostrphes
 
 #get only definitions inside, which are between brackets ()
-requireDefinitions = requireDefinitions[requireDefinitions.find('(')+1:requireDefinitions.find(')')] 
+requireDefinitions = requireDefinitions[requireDefinitions.find('(')+1:requireDefinitions.find(')')]
 requireDefinitions = requireDefinitions.replace(' ', '')
 
 # get sets from string
@@ -111,7 +111,7 @@ function! IwMoveToRestAdapterFile(searchFunctionWord)
 python <<EOF
 import vim
 
-searchWord = vim.eval("a:searchFunctionWord") 
+searchWord = vim.eval("a:searchFunctionWord")
 
 lines       = vim.current.buffer
 linesNumber = len(lines)
@@ -126,7 +126,7 @@ for i in range(0,linesNumber):
 
 if adapterFile:
     firstQuotePosition = adapterFile.find('\'') + 1;
-    
+
     adapterFile = adapterFile[firstQuotePosition:]
     secondQuotePosition = adapterFile.find('\'')
     adapterFile = adapterFile[:secondQuotePosition]
@@ -148,7 +148,7 @@ import vim
 
 filename = vim.current.buffer.name
 
-#testFilename = filename[:filename.find('/portal/')] 
+#testFilename = filename[:filename.find('/portal/')]
 #change portal for portal_test
 #print testFilename + '/portal_test' + filename[len(testFilename)+7:]
 #or
@@ -156,392 +156,6 @@ testFilename = filename.replace('/portal/', '/portal_test/unit/')
 testFilename = testFilename.replace('.php', 'Test.php')
 
 vim.command('e '+testFilename);
-
-EOF
-endfunction
-
-"move to class file
-"
-" This function exptects the created 'tag' file, and loaded, because it use it to find class.
-function! IwGetClassFile(sCls, lineNumber)
-
-python <<EOF
-import vim
-import re
-
-lines = vim.current.buffer
-
-# NOTE: last char of line is deleted by processing line, so there should be for example ';'
-def _getNamespacedClass(line):
-    #note: if there is not ' as ' -> the -1 value is returned, which caused cutting the ; at the end of line!!!
-    line = line[:line.find(' as ')] 
-
-    if line.find('use ') == 0:
-        #cut off "use "
-        line = line[4:]
-
-    if line.find("_") > -1:
-        line = 'tag /' + line
-    else:
-        line = line.replace('\\', '/') #change path separators
-
-        module = line[3:len(line)]
-        module = module[:module.find('/')]
-        module = module.lower()
-
-        line = 'e ./portal/' + module + '/impl/' + line + '.php'
-
-    printd('namespace line to open:')
-    printd(line)
-
-    return line
-
-# return true, if word is followed by '=' like this:  xxx = something .. word 
-def hasEqualSignBeforeWord(line, word):
-    equalSingIndex = line.find('=');
-    
-    if equalSingIndex > -1:
-        equalSingIndexB = line.find('=', equalSingIndex + 1, equalSingIndex + 2); # get second '=', to check 'if statement' '=='
-
-        if equalSingIndexB < 0:
-            wordIndex = line.find(word);
-
-            if wordIndex > equalSingIndex:
-                return True
-
-
-    return False
-
-def startSearching(word, lines, lineNumber):
-
-    line = lines[lineNumber]
-
-    result = isWordOldClass(word, line)
-
-    if result != False:
-        printd('is old class def')
-        return result
-
-    result = getKnownDefinitions(word, lines, lineNumber)
-
-    #if hasEqualSignBeforeWord(lines[lineNumber], searchWord):
-    #searchWordWithEqualSign(lines, searchWord, lineNumber)
-    #else:
-    #searchWordWithoutEqualSign(lines, searchWord, lineNumber)
-
-    return result
-
-def isWordOldClass(word, line):
-    pattern = '_.*_'
-    if re.search(pattern, word):
-        return getTagForWord(word)
-
-    return False
-
-# search backwards from lineNumber, until the search word or word 'function' is find, if no definition and function found,
-# search from begin of file
-def getVariable(word, lines, lineNumber):
-
-    printd('vstupuju do getVariable')
-
-    foundedLine = False 
-    result      = False
-    hasFunction = False
-
-    i = 0
-    for i in range(lineNumber, 0, -1):
-        line = lines[i]
-
-        patternWord = word + ' *='
-        if re.search(patternWord, line):
-            printd('slovo nalezeno, radka: ' + line)
-            foundedLine = line
-            break
-
-        patternFunction = ' *function ';  # handle constructor (skip it)
-
-        if re.search(patternFunction, line):
-            hasFunction = True
-            break;
-
-    if hasFunction == True:
-        printd('byla funkce, hledam od zacatku')
-        i = 0
-        for i in range(0, lineNumber):
-            line = lines[i]
-
-            patternWord = word + ' *='
-            if re.search(patternWord, line):
-                foundedLine = line
-                break
-
-    printd(foundedLine)
-
-    if foundedLine != False:
-        printd('nalezena variable na radce: ' + i.__str__())
-        printd(' radka: ' + line)
-        result = processLineForClassDefinition(word, lines, line, i)
-
-    return result
-
-def processLineForClassDefinition(word, lines, line, lineNumber):
-        
-    restOfLine = line.split('=', 1)[1].strip()
-
-    printd(restOfLine)
-
-    pattern = '(.*)::getInstance\(\)'
-
-    printd('pattern: ' + pattern)
-    res = re.search(pattern, restOfLine)
-    if res:
-        newWord = res.groups()[0]
-        printd('hledane nove slovo: ' + newWord)
-        return getUseNamespacedWord(newWord, lines, lineNumber, line)
-
-    quotes = '[\'|"]'
-    pattern = 'IW_Core_BeanFactory::singleton\(' + quotes + '(.*)' + quotes + '\)';
-    printd('pattern: ' + pattern)
-    res = re.search(pattern, restOfLine)
-    if res:
-        newWord = res.groups()[0]
-        printd('hledane nove slovo: ' + newWord)
-        return getTagForWord(newWord)
-
-    pattern = 'IW_Core_BeanFactory::singleton\(' + '(.*)::class' + '\)';
-    printd('pattern: ' + pattern)
-    res = re.search(pattern, restOfLine)
-    if res:
-        newWord = res.groups()[0]
-        printd('hledane nove slovo: ' + newWord)
-        return getTagForWord(newWord)
-
-    pattern = 'new (.*?)\('; # the ? cause not greedy behaviour
-
-    printd('pattern: ' + pattern)
-    res = re.search(pattern, restOfLine)
-    if res:
-        newWord = res.groups()[0]
-        printd('hledane nove slovo: ' + newWord)
-        return getUseNamespacedWord(newWord, lines, lineNumber, line)
-        
-    pattern = '(.*?)::create'; # the ? cause not greedy behaviour
-
-    printd('pattern: ' + pattern)
-    res = re.search(pattern, restOfLine)
-    if res:
-        newWord = res.groups()[0]
-        printd('hledane nove slovo: ' + newWord)
-        return getUseNamespacedWord(newWord, lines, lineNumber, line)
-
-    #TODO implement all other types :)
-    # x) tohle nejde: (protoze otevre ba, misto hledanyho aaa: $aaa  = $ba->getAAAById($aaId);
-    # x) tohle nevim jestli ma cenu: function definition, like:   $neco = $this->getDef();
-    return False
-    
-
-def getKnownDefinitions(word, lines, lineNumber):
-    printd('vstupuju getKnownDefinitions')
-
-    line = lines[lineNumber]
-    printd('hledane slovo: ' + word + '; A radka: ')
-    printd(line)
-
-    quotes = '[\'|"]'
-
-    pattern = '\$' + word;
-
-    printd(pattern);
-    if re.search(pattern, line):
-        printd('found variable A')
-        return getVariable(word, lines, lineNumber)
-
-    pattern = '->' + word;
-
-    printd(pattern);
-    if re.search(pattern, line):
-        printd('found variable B')
-        return getVariable(word, lines, lineNumber)
-
-    #$orgService = IW_Core_BeanFactory::singleton('IW_OrgStr_User_Service')
-    pattern = 'IW_Core_BeanFactory::singleton\(' + quotes + word + quotes + '\)';
-
-    printd(pattern);
-    if re.search(pattern, line):
-        printd('found beanfactory singleton')
-        return getTagForWord(word)
-
-    #new Word()
-    # ->valid(new VoValidator(), $listViewVo, 'listViewVo')
-    #throw new IW_Core_Authorization_Exception(
-    pattern = 'new ' + word + '\('; #pridat bily znaky pred zavorku, a aby nebyl zravej
-
-    printd(pattern);
-    if re.search(pattern, line):
-        printd('found new word')
-        return getUseNamespacedWord(word, lines, lineNumber, line)
-
-    # NOT this -> IW_Core_Validate::getInstance() -> this is catched before with  isWordOldClass(word, line)
-    # but this-> Service::getInstance()
-    pattern = word + '::getInstance\('; #pridat bily znaky pred zavorku, a aby nebyl zravej
-
-    printd(pattern);
-    printd(re.search(pattern, line));
-    if re.search(pattern, line):
-        printd('found word::getinstance')
-        return getUseNamespacedWord(word, lines, lineNumber, line)
-
-    pattern = word + '::class';
-
-    printd(pattern);
-    printd(re.search(pattern, line));
-    if re.search(pattern, line):
-        printd('found word::class')
-        return getUseNamespacedWord(word, lines, lineNumber, line)
-
-    pattern = word + '::';
-
-    printd(pattern);
-    printd(re.search(pattern, line));
-    if re.search(pattern, line):
-        printd('found word::')
-        return getUseNamespacedWord(word, lines, lineNumber, line)
-
-    #use \Brum\Vrum\Rum as Word;
-    pattern = 'use .*as ' + word; #pridat zacatek radku
-
-    printd(pattern);
-    if re.search(pattern, line):
-        printd('found use as word')
-        return getUseNamespacedWordFromLine(word, lines, lineNumber)
-    
-    #use \Brum\Vrum\Word;
-    #use \Brum\Vrum\Word as Rum;
-    pattern = 'use .*' + word + '(;| )';  #pridat zacatek radku
-
-    printd(pattern);
-    if re.search(pattern, line):
-        printd('found use word')
-        return getUseNamespacedWordFromLine(word, lines, lineNumber)
-
-
-    # try fallback (for expample for:  class A extends B) -> searching B
-    printd('try fallback namespace')
-    return getUseNamespacedWord(word, lines, lineNumber, line)
-    #printd('koncim, nic jsem nenasel')
-    #return False
-
-def getTagForWord(word):
-    return 'tag /' + word
-
-def getUseNamespacedWordFromLine(word, lines, lineNumber):
-    line = lines[lineNumber]
-
-    return _getNamespacedClass(line)
-
-def getUseNamespacedWord(word, lines, lineNumber, line):
-    printd('hledam v namespace')
-
-    # try first find the extended namespace use:  ABCD\EFG\word
-    hasExtendedNamespace = False
-    pattern = '([\w\\\\]{1,}' +  word + ')';
-
-    printd('hledam pattern: ' + pattern);
-    printd(re.search(pattern, line));
-    res = re.search(pattern, line)
-    if res:
-        hasExtendedNamespace = True
-        word = res.groups()[0]
-        printd('found extended namespace ' + word)
-        
-    result = False
-    i = 0
-    namespaceDefLine = False
-    namespaceDefPattern = 'namespace '
-
-    cycleLineNumber = lineNumber;
-
-    # i want another 3 lines, if are posible ( to support case: 
-    # search for word Job, so the line number is less then the: namespace definitions ends with class {
-    # class JobBB extends Job
-    # {
-
-    count = 0
-
-    while len(lines) > cycleLineNumber and count < 3:
-        cycleLineNumber += 1
-        count += 1
-
-    for i in range(0, cycleLineNumber):
-        printd('radek: ' + lines[i])
-        printd('slovo: ' + word)
-        printd('bylo nalezeno?: ' + lines[i].find(word).__str__())
-
-        line = lines[i]
-
-        if namespaceDefLine == False:
-            namespaceDefPosition = lines[i].find(namespaceDefPattern)
-
-            if namespaceDefPosition > -1:
-                namespaceDefLine = lines[i][namespaceDefPosition+len(namespaceDefPattern):]
-                namespaceDefLine = namespaceDefLine.replace(';', '\\'+word)
-                namespaceDefLine += ';'
-
-                printd('namespace current directory:')
-                printd(namespaceDefLine)
-
-                if hasExtendedNamespace == True:
-                    printd('lezu do namespaced class pro extended namespace')
-                    result = _getNamespacedClass(namespaceDefLine);
-                    break;
-
-        if line.find("{") > -1: # namespace definitions ends with class {
-            printd(''),
-            printd('konec namespace definitions, try current directory:');
-            result = _getNamespacedClass(namespaceDefLine)
-            #open in current directory
-            break
-        elif hasExtendedNamespace == False:
-
-            if re.search(r"\b"+word+r"\b"+';', lines[i]) > -1:
-                if line.find(" as ") > -1:
-                    #This if is for lines like:
-                    # use IW\Core\ListView\Service;
-                    # use IW\Core\ListView\Category\Service as CategoryService;
-                    # -- and we search Service   So the code is prevent for opening wrong Category/Service
-                    part = line[line.find(' as ')+4:-1]
-                    if part == word:
-                        result = _getNamespacedClass(line)
-                    else:
-                        continue
-                else:
-                    result = _getNamespacedClass(line)
-
-                break
-
-    printd('nasel jsem: ' + result)
-    return result
- 
-def printd(string, debug=True):
-#def printd(string, debug=False):
-    if debug == True:
-        print(string)
-    
-
-searchWord = vim.eval("a:sCls") 
-lineNumber = int(vim.eval("a:lineNumber"))
-
-lineNumber = lineNumber - 1 #correction to right line, where is cursor
-searchWord = searchWord.strip()
-
-result = startSearching(searchWord, lines, lineNumber)
-
-if result != False:
-    #print result
-    vim.command(result)
-else:
-    print result
-
 
 EOF
 endfunction
