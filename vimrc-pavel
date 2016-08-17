@@ -1,4 +1,4 @@
-" 
+"
 "barvy  pro bash logy jsou v  barvy.txt
 "
 set encoding=utf-8  " The encoding displayed.
@@ -10,6 +10,7 @@ set nocompatible
 let tlist_php_settings = 'php;d:constant;f:function;c:class'
 let Tlist_Sort_Type = "name"
 let Tlist_Show_One_File = 1
+let Tlist_Use_Right_Window = 1
 
 " buffers can exist in background
 set hidden
@@ -48,7 +49,7 @@ filetype plugin on
 filetype plugin indent on
 
 set autoindent
-" copy previous indent on enter 
+" copy previous indent on enter
 set copyindent
 set smartindent
 
@@ -60,7 +61,7 @@ set showmode
 
 "autocmd FileType c,cpp,java,php,phtml autocmd BufWritePre <buffer> :%s/\s\+$//e
 "autocmd CursorMoved * exe printf('match IncSearch /\V\<%s\>/', escape(expand('<cword>'), '/\'))
-autocmd FileType c,cpp,java,php,phtml autocmd BufWritePre <buffer> :%s/\s\+$//e
+autocmd FileType c,cpp,java,php,phtml,py,vim autocmd BufWritePre <buffer> :%s/\s\+$//e
 "autocmd FileType php autocmd BufWritePost <buffer> :!phpcs --standard=Intraworlds %:p
 
 set colorcolumn=121 "ukaze caru za poctem znaku - na dlouhy radky
@@ -74,7 +75,7 @@ set smartcase		" Do smart case matching
 set incsearch		" incremental search
 set hlsearch		" highlights searches
 "enter hide highlights from last search
-nnoremap <CR> :nohlsearch<CR>/<BS> 
+nnoremap <CR> :nohlsearch<CR>/<BS>
 
 "By default vim will clutter your directories with swap files and backup files
 set noswapfile
@@ -89,7 +90,6 @@ set mouse=a
 "map <ScrollWheelDown> <ESC>jjj
 
 inoremap jf <ESC>l
-"inoremap <F12> <c-o>:w<cr>
 
 " press ; to issue commands in normal mode (no more shift holding)
 " nnoremap ; :
@@ -107,7 +107,7 @@ let NERDTreeIgnore=[ '\.pyc$', '\.pyo$', '\.py\$class$', '\.obj$',
             \ '\.o$', '\.so$', '\.egg$', '^\.git$' ]
 "
 "
-let NERDTreeMapOpenInTab='<ENTER>'
+"let NERDTreeMapOpenInTab='<ENTER>'
 
 "ctrlp settings:
 let g:ctrlp_max_files=0
@@ -172,9 +172,9 @@ map <c-space> ?
  let g:explSplitRight=1  " Put new window to the right of the explorer
  let g:explStartRight=0  " new windows go to right of explorer window
 
-let g:miniBufExplMapWindowNavVim = 1 
-let g:miniBufExplMapWindowNavArrows = 1 
-let g:miniBufExplMapCTabSwitchBufs = 1 
+let g:miniBufExplMapWindowNavVim = 1
+let g:miniBufExplMapWindowNavArrows = 1
+let g:miniBufExplMapCTabSwitchBufs = 1
 let g:miniBufExplModSelTarget = 1
 "
 "let g:miniBufExplModSelTarget = 1
@@ -216,7 +216,7 @@ imap <c-s> <c-o><c-s>
 imap <c-s> <esc><c-s>
 
 "center mark positon
-":map <expr> MM printf('`%c zz',getchar()) 
+":map <expr> MM printf('`%c zz',getchar())
 
 " Undo in insert mode.
 imap <c-z> <c-o>u
@@ -247,7 +247,7 @@ set autoindent "Automatically try to indent
 
 "set virtualedit=all "Allows you to move into column without actual characthers in it.
 "Automatically read file when it has been changed by another application"
-set autoread 
+set autoread
 
 " Set 7 lines to the cursor - when moving vertically using j/k
 set so=5
@@ -290,26 +290,24 @@ set viminfo='20,\"100,:100,%,n/home/pavel/multimedia/vimdata/viminfo/viminfo
 "colorscheme buttercream
 "colors zellner
 "colorscheme solarized
-" using this two:
-"colorscheme guardian
-"colorscheme ron
-"colorscheme peaksea
-"
-"
 set bg=light
 
 "colorscheme earendel
-
 "colorscheme xoria256
 "colorscheme fisa
 "colorscheme guardian
-
 "colorscheme ron
 "colorscheme peaksea
 "colorscheme oceandeep
-
 "colorscheme tir_black
 "colorscheme neverness
+"
+"colorscheme jellybeans
+"colorscheme wombat
+"colorscheme 3dglasses
+"colorscheme blueshift
+
+"colorscheme autumnleaf
 
 if has('gui_running')
   set guioptions-=T  " no toolbar
@@ -327,11 +325,6 @@ else
     " colorscheme 3dglasses
 endif
 
-colorscheme jellybeans
-"colorscheme wombat
-"colorscheme 3dglasses
-"colorscheme blueshift
-
 "hi TabLineSel   ctermfg=White  ctermbg=DarkBlue  cterm=NONE
 
 if &diff
@@ -344,11 +337,11 @@ endif
 "colorscheme 3dglassespavel_blue
 
 "svn diff
-noremap <F3> :call Svndiff("prev")<CR> 
-noremap <F4> :call Svndiff("next")<CR> 
-noremap <F5> :call Svndiff("clear")<CR> 
-hi DiffAdd      ctermfg=0 ctermbg=2 guibg='green' 
-hi DiffDelete   ctermfg=0 ctermbg=1 guibg='red' 
+noremap <F3> :call Svndiff("prev")<CR>
+noremap <F4> :call Svndiff("next")<CR>
+noremap <F5> :call Svndiff("clear")<CR>
+hi DiffAdd      ctermfg=0 ctermbg=2 guibg='green'
+hi DiffDelete   ctermfg=0 ctermbg=1 guibg='red'
 hi DiffChange   ctermfg=0 ctermbg=3 guibg='yellow'
 
 "svn blame
@@ -427,7 +420,7 @@ map <Leader>i <ESC>:w\|:!/home/pavel/vagrant/composer/vendor/bin/phpcs --standar
 map <Leader>h <ESC>:w\|:!/home/pavel/vagrant/composer/vendor/bin/phpmd %:p text build/phpmd-errors.xml,build/phpmd-warnings.xml
 
 map <Leader>sd <ESC>:w\|:!svn diff % \| colordiff<cr>
-map <Leader>sdi <ESC>:w\|:!svn diff % \| kompare -<cr>  
+map <Leader>sdi <ESC>:w\|:!svn diff % \| kompare -<cr>
 map <Leader>su <ESC>:w\|:!svn update %<cr>
 map <Leader>gf <ESC>:Filter function <cr>
 "map <Leader>gf <ESC>:!grep "function" % \| sort \| grep --color "function"<cr>
@@ -491,7 +484,7 @@ map <F8> <ESC>yiw<ESC>OIW_Core_Log::getLogger(__CLASS__)->error(sprintf("\033[41
 map <leader><F8> <ESC>yiw<ESC>Ovar_dump(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
 
 "run unit test, if you are in method in test class - since vagrant not working - but is possible to run command to vagrant
-"map <F12> <ESC>j[[2W :Shell cd ~/tr/trunk/;phpunit --filter=<C-R>=expand("<cword>")<CR> % <CR>
+"map <FXX> <ESC>j[[2W :Shell cd ~/tr/trunk/;phpunit --filter=<C-R>=expand("<cword>")<CR> % <CR>
 "
 "next command gif  - works for namespaces in portal - go to variable class
 "map gif **ggn^:s/\\/\//g<cr><esc>^dwdf/yf/^i./portal/<esc>p<esc>b~waimpl/IW/<esc>$i.php<esc>^gf<c-n>u<c-n>
@@ -499,7 +492,9 @@ map <leader><F8> <ESC>yiw<ESC>Ovar_dump(sprintf("\033[41m.....\033[0m%s: ", "<ES
 map <F11> <ESC>:call IwMoveFclientFile('<C-R>=expand("<cword>")<CR>')<CR>
 map <F11>a <ESC>:call IwMoveToRestAdapterFile('<C-R>=expand("<cword>")<CR>')<CR>
 
-map <F12> <ESC>:call IwGetClassFile('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
+map <leader><F2> <ESC>:call PavelMethodContextHint('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
+map <F2> <ESC>:call PavelClassContextHint('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
+map <F12> <ESC>:call PavelCodeNavigate('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
 map <leader><F12> <ESC>:so /home/pavel/.vim/vimrc-pavel<CR><ESC>:so /home/pavel/.vim/plugin/iw_utils.vim<CR>
 
 "vyhleda bean instanci promeny, na ktery je prave ukazatel, a zaroven ji
@@ -623,7 +618,7 @@ command! -nargs=1 Bs :call BufSel("<args>")
 
 " When you press <leader>r you can search and replace the selected text
 "vnoremap <silent> <leader>r :call VisualSelection('replace')<CR>
- 
+
 function! VisualSelection(direction) range
     let l:saved_reg = @"
     execute "normal! vgvy"
@@ -705,7 +700,7 @@ map<leader>t <ESC>o<ESC>oiwlot<ESC>
 
 " oznaceni radku  - zrusit s   :call clearmatches()
 nnoremap <silent> <Leader>l :exe "let m = matchadd('WildMenu','\\%" . line('.') . "l')"<CR>
-"nnoremap <silent> <Leader>l ml:execute 'match Search /\%'.line('.').'l/'<CR>  
+"nnoremap <silent> <Leader>l ml:execute 'match Search /\%'.line('.').'l/'<CR>
 set cursorline
 
 "
@@ -737,7 +732,7 @@ set cursorline
 "TODO aut ulozeni session pro project???
 ":mksession <file>  to write out session to a file
 ":source <file> to load session from a file
-"vim -S <file> to start editing a session 
+"vim -S <file> to start editing a session
 "
 "
 "abbr psvm public static void main(String[] args){<CR>}<esc>O
@@ -760,16 +755,16 @@ set cursorline
 "vim -V12log
 "
 "
-"ColorHighlight - start/update highlighting 
-" ColorClear      - clear all highlights 
+"ColorHighlight - start/update highlighting
+" ColorClear      - clear all highlights
 " ColorToggle     - toggle highlights
-" 
+"
 "
 "
 "
 " :bufdo tab split
 ""
-":tab sball - this opens a new tab for each open buffer 
+":tab sball - this opens a new tab for each open buffer
 ":he switchbuf - this controls buffer switching behaviour, try :se switchbuf=usetab,newtab. This should mean switching to the existing tab if the buffer is open, or creating a new one if not.
 " :Wipeout
 "
