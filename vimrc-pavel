@@ -492,7 +492,10 @@ map <leader><F8> <ESC>yiw<ESC>Ovar_dump(sprintf("\033[41m.....\033[0m%s: ", "<ES
 map <F11> <ESC>:call IwMoveFclientFile('<C-R>=expand("<cword>")<CR>')<CR>
 map <F11>a <ESC>:call IwMoveToRestAdapterFile('<C-R>=expand("<cword>")<CR>')<CR>
 
-map <leader><F2> <ESC>:call PavelMethodContextHint('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
+"map <leader><F2> <ESC>:call PavelMethodContextHint('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
+"map <leader><F2> <ESC>:let winview=winsaveview()<ESC>bbb:let abcde=expand("<cword>")<ESC>ww:let efgh=line('.')<ESC>:execute PavelMethodContextHint('<C-R>=expand("<cword>")<CR>', efgh, abcde)<CR>call winrestview(winview)
+map <leader><F2> <ESC>mzbbb:let abcde=expand("<cword>")<ESC>:let efgh=line('.')<ESC>ww:call PavelMethodContextHint('<C-R>=expand("<cword>")<CR>', efgh, abcde)<CR>
+
 map <F2> <ESC>:call PavelClassContextHint('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
 map <F12> <ESC>:call PavelCodeNavigate('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
 map <leader><F12> <ESC>:so /home/pavel/.vim/vimrc-pavel<CR><ESC>:so /home/pavel/.vim/plugin/iw_utils.vim<CR>
