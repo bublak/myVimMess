@@ -139,6 +139,21 @@ let g:checksyntax_auto = 1
 "noremap   <Down>   <NOP>
 "noremap   <Left>   <NOP>
 "noremap   <Right>  <NOP>
+"
+
+" shift+arrow selection
+nmap <S-Up> v<Up>
+nmap <S-Down> v<Down>
+nmap <S-Left> v<Left>
+nmap <S-Right> v<Right>
+vmap <S-Up> <Up>
+vmap <S-Down> <Down>
+vmap <S-Left> <Left>
+vmap <S-Right> <Right>
+imap <S-Up> <Esc>v<Up>
+imap <S-Down> <Esc>v<Down>
+imap <S-Left> <Esc>v<Left>
+imap <S-Right> <Esc>v<Right>
 
 "
 "assuming you have hlsearch enabled. It highlights text without jumping, and you don't have to change existing settings. This changes the value that's currently stored in the search register
@@ -333,7 +348,7 @@ if &diff
 "else
 endif
 
-"colorscheme darkspectrum
+colorscheme darkspectrum
 "colorscheme 3dglassespavel_blue
 
 "svn diff
@@ -478,10 +493,10 @@ nmap <leader> q <ESC> :q<cr>
 
 nmap <F6> o iwlot ; <ESC>
 nmap <F7> o mtimestop ; <ESC>
-
-"skoci na tridu
 map <F8> <ESC>yiw<ESC>OIW_Core_Log::getLogger(__CLASS__)->error(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
 map <leader><F8> <ESC>yiw<ESC>Ovar_dump(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
+
+map <F9> <ESC>:!svn cat %:p > /tmp/vimdiff_bla8979865aadaj1.php <CR>:!gvimdiff /tmp/vimdiff_bla8979865aadaj1.php %:p <CR>
 
 "run unit test, if you are in method in test class - since vagrant not working - but is possible to run command to vagrant
 "map <FXX> <ESC>j[[2W :Shell cd ~/tr/trunk/;phpunit --filter=<C-R>=expand("<cword>")<CR> % <CR>
@@ -492,21 +507,14 @@ map <leader><F8> <ESC>yiw<ESC>Ovar_dump(sprintf("\033[41m.....\033[0m%s: ", "<ES
 map <F11> <ESC>:call IwMoveFclientFile('<C-R>=expand("<cword>")<CR>')<CR>
 map <F11>a <ESC>:call IwMoveToRestAdapterFile('<C-R>=expand("<cword>")<CR>')<CR>
 
-"map <leader><F2> <ESC>:call PavelMethodContextHint('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
-"map <leader><F2> <ESC>:let winview=winsaveview()<ESC>bbb:let abcde=expand("<cword>")<ESC>ww:let efgh=line('.')<ESC>:execute PavelMethodContextHint('<C-R>=expand("<cword>")<CR>', efgh, abcde)<CR>call winrestview(winview)
-map <leader><F2> <ESC>mzbbb:let abcde=expand("<cword>")<ESC>:let efgh=line('.')<ESC>ww:call PavelMethodContextHint('<C-R>=expand("<cword>")<CR>', efgh, abcde)<CR>
+map <leader><F2> <ESC>:let pavelLine=line('.')<CR>:call PavelGetFunctionAnotation(pavelFunctionName, pavelLine, '<C-R>=expand("<cword>")<CR>')<CR>
+map <F2> <ESC>:let pavelFunctionName=expand("<cword>")<CR>
 
-map <F2> <ESC>:call PavelClassContextHint('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
-map <F12> <ESC>:call PavelCodeNavigate('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
-map <leader><F12> <ESC>:so /home/pavel/.vim/vimrc-pavel<CR><ESC>:so /home/pavel/.vim/plugin/iw_utils.vim<CR>
+map <leader><F12> <ESC>:call PavelGetClassContextData('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
+map <F12> <ESC>:call PavelNavigateToClass('<C-R>=expand("<cword>")<CR>', line('.'))<CR>
 
-"vyhleda bean instanci promeny, na ktery je prave ukazatel, a zaroven ji
-"pripravy pro vyhledani v ctags
-" TODO, - zprovoznit namespace tridy
-map <leader><F9> <ESC>"9yiwmz?<C-r><C-w>.*=.*IW_Core_BeanFactory::singleton(.*\_s*.*'IW_.*'\_s*.*)<CR>2/IW_<CR>"8yiw'zO<ESC>I$<ESC>"9pA = new <ESC>"8pA; <ESC>jo$<ESC>"9pA-><C-x><C-o>
-map <leader><F10> <ESC>"9yiwmz?<C-r><C-w>.*=.*IW_Core_BeanFactory::singleton(.*\_s*.*'IW_.*'\_s*.*)<CR>2/IW_<CR><F6>
+"map <leader><F12> <ESC>:so /home/pavel/.vim/vimrc-pavel<CR><ESC>:so /home/pavel/.vim/plugin/iw_utils.vim<CR>
 
-map <F9> <ESC>:!svn cat %:p > /tmp/vimdiff_bla8979865aadaj1.php <CR>:!gvimdiff /tmp/vimdiff_bla8979865aadaj1.php %:p <CR>
 
 " Buffer navigation
 map <PageUp> <ESC>:bp<CR>
@@ -616,32 +624,33 @@ command! -nargs=1 Bs :call BufSel("<args>")
 " """"""""""""""""""""""""""""""
 " Visual mode pressing * or # searches for the current selection
 " Super useful! From an idea by Michael Naumann
- vnoremap <silent> * :call VisualSelection('f')<CR>
- vnoremap <silent> # :call VisualSelection('b')<CR>
+
+ "vnoremap <silent> * :call VisualSelection('f')<CR>
+ "vnoremap <silent> # :call VisualSelection('b')<CR>
 
 " When you press <leader>r you can search and replace the selected text
 "vnoremap <silent> <leader>r :call VisualSelection('replace')<CR>
 
-function! VisualSelection(direction) range
-    let l:saved_reg = @"
-    execute "normal! vgvy"
-
-    let l:pattern = escape(@", '\\/.*$^~[]')
-    let l:pattern = substitute(l:pattern, "\n$", "", "")
-
-    if a:direction == 'b'
-        execute "normal ?" . l:pattern . "^M"
-    elseif a:direction == 'gv'
-        call CmdLine("vimgrep " . '/'. l:pattern . '/' . ' **/*.')
-    elseif a:direction == 'replace'
-        call CmdLine("%s" . '/'. l:pattern . '/')
-    elseif a:direction == 'f'
-        execute "normal /" . l:pattern . "^M"
-    endif
-
-    let @/ = l:pattern
-    let @" = l:saved_reg
-endfunction
+"function! VisualSelection(direction) range
+"    let l:saved_reg = @"
+"    execute "normal! vgvy"
+"
+"    let l:pattern = escape(@", '\\/.*$^~[]')
+"    let l:pattern = substitute(l:pattern, "\n$", "", "")
+"
+"    if a:direction == 'b'
+"        execute "normal ?" . l:pattern . "^M"
+"    elseif a:direction == 'gv'
+"        call CmdLine("vimgrep " . '/'. l:pattern . '/' . ' **/*.')
+"    elseif a:direction == 'replace'
+"        call CmdLine("%s" . '/'. l:pattern . '/')
+"    elseif a:direction == 'f'
+"        execute "normal /" . l:pattern . "^M"
+"    endif
+"
+"    let @/ = l:pattern
+"    let @" = l:saved_reg
+"endfunction
 
 " Pulse ------------------------------------------------------------------- {{{
 
@@ -795,3 +804,7 @@ command! -nargs=? Filter let @a='' | execute 'g/<args>/y A' | new | setlocal bt=
 "After searching for some text, enter :Filter (or just type :F then press Tab for command completion). Entering this command will open a new scratch window listing all lines that contain the text that was last searched for.
 "
 ":ConqueTerm bash
+"
+" let save_cursor = getpos(".")
+" MoveTheCursorAround
+" call setpos('.', save_cursor)
