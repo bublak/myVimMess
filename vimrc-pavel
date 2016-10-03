@@ -12,11 +12,17 @@ let Tlist_Sort_Type = "name"
 let Tlist_Show_One_File = 1
 let Tlist_Use_Right_Window = 1
 
+set list listchars=tab:»·,trail:·
+
+
 " buffers can exist in background
 set hidden
 
+set guicursor+=a:blinkon0
+
 " enable line numbers
 set nu
+set relativenumber
 
 set linespace=3
 
@@ -37,7 +43,16 @@ set formatoptions=l
 set lbr
 
 "set guifont=Monospace\ 8
-set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 11
+"set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 10
+
+" font settings
+if has("gui_running")
+  if has("gui_gtk2")
+    set guifont=Inconsolata\ 12
+  elseif has("gui_win32")
+    set guifont=Consolas:h11:cANSI
+  endif
+endif
 
 nnoremap <C-e> 3<C-e>
 nnoremap <C-y> 3<C-y>
@@ -63,6 +78,8 @@ set showmode
 "autocmd CursorMoved * exe printf('match IncSearch /\V\<%s\>/', escape(expand('<cword>'), '/\'))
 autocmd FileType c,cpp,java,php,phtml,py,vim autocmd BufWritePre <buffer> :%s/\s\+$//e
 "autocmd FileType php autocmd BufWritePost <buffer> :!phpcs --standard=Intraworlds %:p
+
+au FilterWritePre * if &diff | colorscheme desert | endif
 
 set colorcolumn=121 "ukaze caru za poctem znaku - na dlouhy radky
 
@@ -160,7 +177,7 @@ imap <S-Right> <Esc>v<Right>
 " :let @/='hilight_this'
 "  or http://www.vim.org/scripts/script.php?script_id=2666
 
-nnoremap * <ESC>:let @/='<C-R>=expand("<cword>")<CR>'<CR>
+nnoremap * <ESC>:let @/='<C-R>=expand("<cword>")<CR>'<CR><ESC>:set hlsearch<CR>
 map <2-LeftMouse> *
 "nnoremap * *N
 "noremap  # #N
@@ -205,8 +222,8 @@ let g:SexyScroller_CursorTime = 0
 let g:SexyScroller_EasingStyle = 4
 
 
-let php_sql_query=1 "to highlight SQL syntax in string
-let php_htmlInStrings=1 "to highlight HTML in string
+"let php_sql_query=0 "to highlight SQL syntax in string
+"let php_htmlInStrings=0 "to highlight HTML in string
 "let php_noShorttags=1 "to disable short tags
 "let php_folding=1 "to enable folding for classes and functions
 "switch to directory of current file
@@ -239,14 +256,14 @@ imap <c-z> <c-o>u
 "check A B B R E V I A T I O N S
 
 "move moving text up down
-let g:move_map_keys = 0
-vmap <C-j> <Plug>MoveBlockDown
-vmap <C-k> <Plug>MoveBlockUp
+"let g:move_map_keys = 0
+"vmap <C-j> <Plug>MoveBlockDown
+"vmap <C-k> <Plug>MoveBlockUp
 "nmap <A-j> <Plug>MoveLineDown
 "nmap <A-k> <Plug>MoveLineUp
 
-nmap <C-j> <Plug>MoveLineDown
-nmap <C-k> <Plug>MoveLineUp
+"nmap <C-j> <Plug>MoveLineDown
+"nmap <C-k> <Plug>MoveLineUp
 
 " Avoids updating the screen before commands are completed
 set lazyredraw
@@ -288,7 +305,9 @@ vnoremap <silent> <leader>d "_d
 map <C-h> <C-W>h
 map <C-l> <C-W>l
 
- map <C-n> <ESC>:b#<CR>
+"map <C-n> <ESC>:b#<CR>
+"cycle between two last files +  `" get to the last cursor position
+map <C-n> <ESC><c-^>`"
 
 " Remember info about open buffers on close
 " set viminfo^=%
@@ -305,7 +324,7 @@ set viminfo='20,\"100,:100,%,n/home/pavel/multimedia/vimdata/viminfo/viminfo
 "colorscheme buttercream
 "colors zellner
 "colorscheme solarized
-set bg=light
+"set bg=dark
 
 "colorscheme earendel
 "colorscheme xoria256
@@ -348,8 +367,10 @@ if &diff
 "else
 endif
 
-colorscheme darkspectrum
 "colorscheme 3dglassespavel_blue
+"colorscheme darkspectrum
+"colorscheme shades-of-teal
+colorscheme molokai
 
 "svn diff
 noremap <F3> :call Svndiff("prev")<CR>
@@ -507,6 +528,7 @@ map <F9> <ESC>:!svn cat %:p > /tmp/vimdiff_bla8979865aadaj1.php <CR>:!gvimdiff /
 map <F11> <ESC>:call IwMoveFclientFile('<C-R>=expand("<cword>")<CR>')<CR>
 map <F11>a <ESC>:call IwMoveToRestAdapterFile('<C-R>=expand("<cword>")<CR>')<CR>
 
+map <leader><leader><F2> <ESC>:let pavelLine=line('.')<CR>:call PavelGetFunctionJump(pavelFunctionName, pavelLine, '<C-R>=expand("<cword>")<CR>')<CR>
 map <leader><F2> <ESC>:let pavelLine=line('.')<CR>:call PavelGetFunctionAnotation(pavelFunctionName, pavelLine, '<C-R>=expand("<cword>")<CR>')<CR>
 map <F2> <ESC>:let pavelFunctionName=expand("<cword>")<CR>
 
@@ -782,12 +804,12 @@ set cursorline
 "
 "
 "
-"nnoremap <A-j> :m .+1<CR>==
-"nnoremap <A-k> :m .-2<CR>==
-"inoremap <A-j> <Esc>:m .+1<CR>==gi
-"inoremap <A-k> <Esc>:m .-2<CR>==gi
-"vnoremap <A-j> :m '>+1<CR>gv=gv
-"vnoremap <A-k> :m '<-2<CR>gv=gv
+nnoremap <A-j> :m .+1<CR>==
+nnoremap <A-k> :m .-2<CR>==
+inoremap <A-j> <Esc>:m .+1<CR>==gi
+inoremap <A-k> <Esc>:m .-2<CR>==gi
+vnoremap <A-j> :m '>+1<CR>gv=gv
+vnoremap <A-k> :m '<-2<CR>gv=gv
 "http://vim.wikia.com/wiki/Moving_lines_up_or_down#Mappings_to_move_lines
 "
 "
