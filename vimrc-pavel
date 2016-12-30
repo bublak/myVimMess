@@ -1,6 +1,10 @@
 "
 "barvy  pro bash logy jsou v  barvy.txt
 "
+"
+let mapleader = ","
+let g:mapleader = ","
+
 set encoding=utf-8  " The encoding displayed.
 set fileencoding=utf-8  " The encoding written to file.
 
@@ -24,7 +28,7 @@ set guicursor+=a:blinkon0
 set nu
 set relativenumber
 
-set linespace=3
+set linespace=2
 
 "persistent undo between sessions
 set undofile
@@ -42,13 +46,15 @@ set history=3000
 set formatoptions=l
 set lbr
 
-"set guifont=Monospace\ 8
-"set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 10
 
 " font settings
 if has("gui_running")
   if has("gui_gtk2")
-    set guifont=Inconsolata\ 12
+    "set guifont=Inconsolata\ 12
+    "set guifont=Andale\ Mono\ 10
+    set guifont=Nimbus\ Mono\ L\ 10
+    "set guifont=Monospace\ 8
+    "set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 10
   elseif has("gui_win32")
     set guifont=Consolas:h11:cANSI
   endif
@@ -99,7 +105,21 @@ set noswapfile
 set nobackup
 set nowb
 
+let g:ctrlp_working_path_mode = 'a'
 set runtimepath^=~/.vim/bundle/ctrlp.vim
+let g:ctrlp_extensions = ['register','mark']
+
+nnoremap <c-]> :CtrlPtjump<cr>
+vnoremap <c-]> :CtrlPtjumpVisual<cr>
+
+"If there is only one tag found, it is possible to open it without opening CtrlP window:
+let g:ctrlp_tjump_only_silent = 0
+"The tag name itself takes valuable screen estate and can be disabled by:
+let g:ctrlp_tjump_skip_tag_name = 1
+
+nnoremap <Leader>gfu :CtrlPFunky<Cr>
+" narrow the list down with a word under cursor
+nnoremap <Leader>gfU :execute 'CtrlPFunky ' . expand('<cword>')<Cr>
 
 "allow mouse
 set mouse=a
@@ -116,7 +136,7 @@ inoremap jf <ESC>l
 set stl=Buf:\ #%n\ %l/%L[%p%%]\ %m\ %r\ \ Col:\ %c\ %f\ %=%l/%L[%p%%]
 set laststatus=2
 
-nnoremap <Leader>l :ls<CR>
+"nnoremap <Leader>l :ls<CR>
 
 nnoremap <f1> :NERDTreeToggle<CR>
 " Don't display these kinds of files
@@ -216,11 +236,6 @@ let g:miniBufExplModSelTarget = 1
 "let g:miniBufExplMapWindowNavVim = 1
 "let g:miniBufExplVSplit = 25
 "let g:miniBufExplSplitBelow=1
-
-"sexy_scroll " TODO update or delete
-let g:SexyScroller_CursorTime = 0
-let g:SexyScroller_EasingStyle = 4
-
 
 "let php_sql_query=0 "to highlight SQL syntax in string
 "let php_htmlInStrings=0 "to highlight HTML in string
@@ -370,7 +385,8 @@ endif
 "colorscheme 3dglassespavel_blue
 "colorscheme darkspectrum
 "colorscheme shades-of-teal
-colorscheme molokai
+
+colorscheme molokai_pavel
 
 "svn diff
 noremap <F3> :call Svndiff("prev")<CR>
@@ -387,9 +403,6 @@ vmap gl :<C-U>!svn blame <C-R>=expand("%:p") <CR> \| sed -n <C-R>=line("'<") <CR
 nmap <C-@><C-@> :cs find s <C-R>=expand("<cword>")<CR><CR>
 "cscope add ~/tr/leonard52/application/cscope.out ~/tr/leonard52/
 "cscope add ~/tr/leonard52/portal/cscope.out ~/tr/leonard52/
-
-let mapleader = ","
-let g:mapleader = ","
 
 map <leader>r :NERDTreeFind<cr>zz
 
@@ -431,6 +444,24 @@ vnoremap <leader>Y "+yy
 vnoremap <leader>p "+p
 vnoremap <leader>P "+P
 
+
+nnoremap <A-j> :m .+1<CR>==
+nnoremap <A-k> :m .-2<CR>==
+inoremap <A-j> <Esc>:m .+1<CR>==gi
+inoremap <A-k> <Esc>:m .-2<CR>==gi
+vnoremap <A-j> :m '>+1<CR>gv=gv
+vnoremap <A-k> :m '<-2<CR>gv=gv
+
+nnoremap <A-DOWN> :m .+1<CR>==
+nnoremap <A-UP> :m .-2<CR>==
+inoremap <A-DOWN> <Esc>:m .+1<CR>==gi
+inoremap <A-UP> <Esc>:m .-2<CR>==gi
+vnoremap <A-DOWN> :m '>+1<CR>gv=gv
+vnoremap <A-UP> :m '<-2<CR>gv=gv
+
+vnoremap <A-LEFT> xhP `[v`]
+vnoremap <A-RIGHT> xlP `[v`]
+
 " Copy to 'clipboard registry'
 "
 
@@ -442,7 +473,7 @@ set clipboard+=unnamed  " use the clipboards of vim and win
 set go+=a               " Visual selection automatically copied to the clipboard
 
 "vmap <C-c> "*y
-vmap <C-c> "+yi
+vmap <C-c> "+y
 vmap <C-x> "+c
 vmap <C-v> c<ESC>"+p
 imap <C-v> <ESC>"+pa
@@ -496,21 +527,26 @@ if filereadable("php.tags")
 else
     if filereadable("./application/index.php")
         cd application
-        !ctags-exuberant -f ../php.tags --tag-relative=yes  --PHP-kinds=+cf --languages=+PHP,+JavaScript -R
+        !ctags-exuberant -f ../php.tags --tag-relative=yes --exclude="*.js" -h ".inc" --exclude="*.yaml" --PHP-kinds=+cf --languages=+PHP --language-force=PHP -R
+
         cd ../portal
-        !ctags-exuberant --append=yes -f ../php.tags --tag-relative=yes  --PHP-kinds=+cf --languages=+PHP,+JavaScript -R
-        cd ..
+        !ctags-exuberant --append=yes -f ../php.tags --tag-relative=yes --exclude="*.js" --exclude="*.sql" --exclude="*.yaml" --PHP-kinds=+cf --languages=+PHP --language-force=PHP -R
+
+        cd ../portal_test/unit/
+        !ctags-exuberant --append=yes -f ../../php.tags --tag-relative=yes --exclude="*.js" --exclude="*.sql" --exclude="*.yaml" --PHP-kinds=+cf --languages=+PHP --language-force=PHP -R
+
+        cd ../..
 
         set tags=php.tags
     endif
 endif
 
-"nmap <leader>c :CommandT <cr>
-
 "manipulovani s oknami, zavre buffer, ale zachova split windows
 "map <c-w> :bw %<cr>  "pouziva se na split window
 nmap <leader>f <ESC>:call CleanClose(1)<cr>
 nmap <leader> q <ESC> :q<cr>
+
+nmap <leader>com <ESC>:call PhpDocRange()<CR>
 
 nmap <F6> o iwlot ; <ESC>
 nmap <F7> o mtimestop ; <ESC>
@@ -543,7 +579,8 @@ map <PageUp> <ESC>:bp<CR>
 map <PageDown> <ESC>:bn<CR>
 
 
-nnoremap <Leader>b :Pbuf<CR>
+nnoremap <Leader>bb :Pbuf<CR>
+nnoremap <Leader>b :CtrlPMRU<CR>
 
 command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
 function! s:RunShellCommand(cmdline)
@@ -804,12 +841,8 @@ set cursorline
 "
 "
 "
-nnoremap <A-j> :m .+1<CR>==
-nnoremap <A-k> :m .-2<CR>==
-inoremap <A-j> <Esc>:m .+1<CR>==gi
-inoremap <A-k> <Esc>:m .-2<CR>==gi
-vnoremap <A-j> :m '>+1<CR>gv=gv
-vnoremap <A-k> :m '<-2<CR>gv=gv
+
+
 "http://vim.wikia.com/wiki/Moving_lines_up_or_down#Mappings_to_move_lines
 "
 "
@@ -830,3 +863,18 @@ command! -nargs=? Filter let @a='' | execute 'g/<args>/y A' | new | setlocal bt=
 " let save_cursor = getpos(".")
 " MoveTheCursorAround
 " call setpos('.', save_cursor)
+"
+"
+"
+"
+""--PHP-kinds=cfiv
+"--regex-PHP=/(abstract)?\s+class\s+([^ ]+)/\2/c/
+"--regex-PHP=/(static|abstract|public|protected|private)\s+(final\s+)?function\s+(\&\s+)?([^ (]+)/\4/f/
+"--regex-PHP=/interface\s+([^ ]+)/\1/i/
+"--regex-PHP=/\$([a-zA-Z_][a-zA-Z0-9_]*)/\1/v/
+"-R
+"
+"
+"--regex-PHP=/abstract\s+class\s+([^ ]+)/\1/c/
+"--regex-PHP=/interface\s+([^ ]+)/\1/c/
+"--regex-PHP=/(public\s+|static\s+|abstract\s+|protected\s+|private\s+)function\s+\&?\s*([^ (]+)/\2/f/
