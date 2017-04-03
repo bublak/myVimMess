@@ -3,7 +3,7 @@
     "finish
 "endif
 
-if !has('python')
+if !has('python3')
     echo "Error: Required vim compiled with +python"
     finish
 endif
@@ -14,7 +14,7 @@ let loaded_iwUtils = 1
 " get from Require.js fclient definitions and file locations, and get to file according search definition
 " -> where was the cursor
 function! IwMoveFclientFile(searchFclientWord)
-python <<EOF
+python3 <<EOF
 import vim
 
 name = vim.current.buffer.name
@@ -108,7 +108,7 @@ endfunction
 " move to rest adapter  => if the cursor is on the function word, then go to this word in adapter file
 " This function exptects the created 'tag' file, and loaded, because it use it to find adapter class.
 function! IwMoveToRestAdapterFile(searchFunctionWord)
-python <<EOF
+python3 <<EOF
 import vim
 
 searchWord = vim.eval("a:searchFunctionWord")
@@ -143,7 +143,7 @@ endfunction
 "           =================function====================
 "move to unit test
 function! IwGetUnitTestFile()
-python <<EOF
+python3 <<EOF
 import vim
 
 filename = vim.current.buffer.name
