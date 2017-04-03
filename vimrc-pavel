@@ -52,7 +52,8 @@ if has("gui_running")
   if has("gui_gtk2")
     "set guifont=Inconsolata\ 12
     "set guifont=Andale\ Mono\ 10
-    set guifont=Nimbus\ Mono\ L\ 10
+    "set guifont=Nimbus\ Mono\ L\ 10
+    set guifont=Bitstream\ Vera\ Sans\ Mono\ 9
     "set guifont=Monospace\ 8
     "set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 10
   elseif has("gui_win32")
@@ -483,7 +484,9 @@ nmap <leader>w :w<cr>
 map! ,w <ESC>:w<cr>l
 
 map <Leader>j <ESC>:w\|:!/home/pavel/vagrant/tools/external_use/eslint-file.sh %:p<cr>
-map <Leader>i <ESC>:w\|:!/home/pavel/vagrant/composer/vendor/bin/phpcs --standard=Intraworlds %:p<cr>
+"map <Leader>i <ESC>:w\|:!/home/pavel/vagrant/composer/vendor/bin/phpcs --standard=Intraworlds %:p<cr>
+map <Leader>i <ESC>:w\|:!check_file %:p<cr>
+
 map <Leader>h <ESC>:w\|:!/home/pavel/vagrant/composer/vendor/bin/phpmd %:p text build/phpmd-errors.xml,build/phpmd-warnings.xml
 
 map <Leader>sd <ESC>:w\|:!svn diff % \| colordiff<cr>
@@ -550,7 +553,7 @@ nmap <leader>com <ESC>:call PhpDocRange()<CR>
 
 nmap <F6> o iwlot ; <ESC>
 nmap <F7> o mtimestop ; <ESC>
-map <F8> <ESC>yiw<ESC>OIW_Core_Log::getLogger(__CLASS__)->error(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
+map <F8> <ESC>yiw<ESC>OIW_Core_Log::getLogger(__CLASS__." ".__LINE__)->error(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
 map <leader><F8> <ESC>yiw<ESC>Ovar_dump(sprintf("\033[41m.....\033[0m%s: ", "<ESC>pa").var_export($<ESC>pa, 1));<ESC>
 
 map <F9> <ESC>:!svn cat %:p > /tmp/vimdiff_bla8979865aadaj1.php <CR>:!gvimdiff /tmp/vimdiff_bla8979865aadaj1.php %:p <CR>
@@ -579,7 +582,7 @@ map <PageUp> <ESC>:bp<CR>
 map <PageDown> <ESC>:bn<CR>
 
 
-nnoremap <Leader>bb :Pbuf<CR>
+"nnoremap <Leader>bb :Pbuf<CR>
 nnoremap <Leader>b :CtrlPMRU<CR>
 
 command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
@@ -769,7 +772,7 @@ abbrev stoptime IW_Core_Log::getLogger($this)->error(var_export('<C-R>=line(".")
 map<leader>t <ESC>o<ESC>oiwlot<ESC>
 
 
-" oznaceni radku  - zrusit s   :call clearmatches()
+" mark line / oznaceni radku  - zrusit s   :call clearmatches()
 nnoremap <silent> <Leader>l :exe "let m = matchadd('WildMenu','\\%" . line('.') . "l')"<CR>
 "nnoremap <silent> <Leader>l ml:execute 'match Search /\%'.line('.').'l/'<CR>
 set cursorline
